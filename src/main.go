@@ -51,5 +51,9 @@ func main() {
 		}, nil
 	})
 
+	plugin.OnReady(func() {
+		shared.Log("helloworld", "all plugins ready")
+	})
+
 	plugin.Run()
 }
