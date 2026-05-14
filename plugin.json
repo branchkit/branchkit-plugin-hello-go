@@ -2,6 +2,7 @@
   "id": "helloworld",
   "name": "Hello World",
   "version": "1.0.0",
+  "min_api_version": "0.1.0",
   "description": "A minimal BranchKit plugin that types a greeting at the cursor.",
   "author": "Your Name",
   "privileges": ["input"],
