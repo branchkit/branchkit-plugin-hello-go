@@ -6,7 +6,7 @@
   },
   {
     "pattern": ["hello", "<text>"],
-    "action": { "type": "helloworld.greet", "name": "{0}" },
+    "action": { "type": "helloworld.greet", "name": "{text}" },
     "description": "Greet someone by name"
   }
 ]
