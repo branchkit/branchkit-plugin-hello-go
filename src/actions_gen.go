@@ -7,4 +7,3 @@ package main
 type GreetParams struct {
 	Name *string `json:"name,omitempty"`
 }
-
