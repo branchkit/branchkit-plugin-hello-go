@@ -9,17 +9,19 @@ type RenderSettingsRequest struct {
 func main() {
 	plugin := shared.NewPlugin()
 
-	plugin.HandleAction("helloworld.greet", func(req *shared.OnActionRequest) (any, error) {
-		var p GreetParams
-		req.UnmarshalParams(&p)
-
+	// HandleGreet and GreetParams are both generated from plugin.json into
+	// actions_gen.go by `just gen-plugins`, so the action string is never
+	// spelled here and the params arrive typed. Prefer this over the untyped
+	// plugin.HandleAction — this plugin is the example others copy.
+	HandleGreet(plugin, func(p GreetParams, _ *shared.OnActionRequest) (any, error) {
 		name := "BranchKit"
 		if p.Name != nil {
 			name = *p.Name
 		}
 
-		plugin.Call("input.type_text", map[string]any{"text": "Hello, " + name + "!"}, nil)
-		return nil, nil
+		// Generated wrapper, not plugin.Call("input.type_text", map[string]any{…}):
+		// the method name and the argument shape are checked at compile time.
+		return nil, plugin.InputTypeText("Hello, " + name + "!")
 	})
 
 	shared.HandleTyped(plugin, "render_settings", func(_ *RenderSettingsRequest) (any, error) {
