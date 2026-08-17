@@ -5,7 +5,9 @@
   "min_api_version": "0.1.0",
   "description": "A minimal BranchKit plugin that types a greeting at the cursor.",
   "author": "Your Name",
-  "privileges": ["input"],
+  "privileges": [
+    "input"
+  ],
   "run": "./hello-plugin",
   "action_prefix": "helloworld",
   "action_types": {
@@ -21,7 +23,14 @@
     }
   },
   "consumes": {
-    "collections": ["apps"]
+    "collections": [
+      "apps"
+    ],
+    "events": [
+      {
+        "pattern": "_platform.collection.updated"
+      }
+    ]
   },
   "collection_data": {
     "voice_commands": "commands.json",
@@ -33,7 +42,51 @@
     "on_action": true,
     "render_settings": true,
     "settings_tabs": [
-      { "label": "Getting Started", "key": "getting_started" }
+      {
+        "label": "Getting Started",
+        "key": "getting_started"
+      },
+      {
+        "label": "Settings",
+        "key": "settings"
+      }
     ]
+  },
+  "provides": {
+    "collections": {
+      "plugin.helloworld.config": {
+        "preset": "settings",
+        "label": "Hello World",
+        "description": "Settings for the greeting this plugin types. Defaults live here; only your changes are stored.",
+        "fields": [
+          {
+            "key": "greeting",
+            "label": "Greeting",
+            "description": "The word typed before the name.",
+            "field_type": "string",
+            "default": "Hello"
+          },
+          {
+            "key": "punctuation",
+            "label": "Ending",
+            "description": "How the greeting finishes.",
+            "field_type": "enum",
+            "enum_values": [
+              "period",
+              "exclamation",
+              "none"
+            ],
+            "default": "exclamation"
+          },
+          {
+            "key": "shout",
+            "label": "Shout it",
+            "description": "Type the greeting in capitals.",
+            "field_type": "boolean",
+            "default": false
+          }
+        ]
+      }
+    }
   }
 }
