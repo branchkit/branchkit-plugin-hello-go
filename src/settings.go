@@ -154,7 +154,6 @@ func renderSettingsTab() string {
 	) + boolRow(
 		"Shout it", "Type the greeting in capitals.",
 		c.Shout,
-		fmt.Sprintf("{shout: %t}", !c.Shout),
 	)
 
 	// Plain fragment — the platform's settings frame owns the morph
@@ -183,21 +182,27 @@ func row(label, description, control string) string {
 // textRow pairs an input with a Save that posts the input's value.
 // ui.InputValue is the SDK's spelling of "the input before this button" —
 // the element is `el`, never `$el` ($ reads a signal; a hand-written $el
-// is a dead button with no error).
+// is a dead button with no error). ui.Payload marshals values, so a
+// greeting containing a quote stays data instead of breaking the
+// expression.
 func textRow(label, description, value string) string {
 	return row(label, description,
 		`<input type="text" value="`+html.EscapeString(value)+`" `+
 			`style="background: #1c1c1e; border: 1px solid #3a3a3c; color: inherit; border-radius: 4px; padding: 4px 8px; font-size: 13px;">`+
-			ui.PostButton("Save", "set_greeting", "{greeting: "+ui.InputValue+"}", "margin-left: 8px; font-size: 12px;"))
+			ui.PostButton("Save", "set_greeting",
+				ui.Payload("greeting", ui.InputValue),
+				ui.Style("margin-left: 8px; font-size: 12px;")))
 }
 
-func boolRow(label, description string, on bool, payloadJS string) string {
+func boolRow(label, description string, on bool) string {
 	state := "Off"
 	if on {
 		state = "On"
 	}
 	return row(label, description,
-		ui.PostButton(state, "set_shout", payloadJS, "min-width: 56px; font-size: 12px;"))
+		ui.PostButton(state, "set_shout",
+			ui.Payload("shout", !on),
+			ui.Style("min-width: 56px; font-size: 12px;")))
 }
 
 // enumRow shows one button per value. Note the option LABELS — "Hello, Drew!"
@@ -211,7 +216,8 @@ func enumRow(label, description, current string, options [][2]string) string {
 		if value == current {
 			style += " font-weight: 700; border-color: #4a9eff;"
 		}
-		buttons += ui.PostButton(text, "set_punctuation", `{punctuation: '`+value+`'}`, style)
+		buttons += ui.PostButton(text, "set_punctuation",
+			ui.Payload("punctuation", value), ui.Style(style))
 	}
 	return row(label, description, buttons)
 }
