@@ -19,7 +19,6 @@ package main
 // converges on the blandest thing that fits every schema.
 
 import (
-	"encoding/json"
 	"fmt"
 	"html"
 
@@ -66,38 +65,24 @@ func config() Config {
 
 // --- Writing: one relay helper, and one handler per control -----------------
 
-// setUserField records ONE user gesture. Settings are `writers: platform_only`
-// — a plugin never saves settings on its own initiative — so this says
-// `tenant: "_user"`: the choice is the user's and this plugin is the transport.
-//
-// The platform records the write as `relayed` rather than `user`, because the
-// click happened on a surface it did not draw and it will not claim otherwise
-// on your behalf. That is visible to the user, who can undo it. Do not use this
-// path for anything the user did not just ask for: state your plugin decides on
+// Each handler relays ONE user gesture via SetUser. Settings are
+// `writers: platform_only` — a plugin never saves settings on its own
+// initiative — so SetUser writes `tenant: "_user"`: the choice is the
+// user's and this plugin is the transport. The platform records it as
+// `relayed`, visible to the user and undoable. Do not use this path for
+// anything the user did not just ask for: state your plugin decides on
 // its own is domain data, and belongs in its own collection.
-func setUserField(key string, value any) error {
-	raw, err := json.Marshal(map[string]any{key: value})
-	if err != nil {
-		return err
-	}
-	id := settingsCollection
-	tenant := "_user"
-	if _, err = plugin.OverridesApply("patch", settingsCollection, nil, raw, &id, nil, &tenant); err != nil {
-		return err
-	}
-	// The actuator re-renders the tab the moment this method returns; the
-	// mirror normally catches up asynchronously via collection.updated,
-	// which loses that race and re-draws the stale value. Refresh
-	// synchronously so the re-render sees the write.
-	return settings.Refresh()
-}
+//
+// SetUser also refreshes the mirror before returning, so the tab
+// re-render the actuator fires on method return sees the write — never
+// call OverridesApply + Refresh by hand for settings.
 
 type setGreetingRequest struct {
 	Greeting string `json:"greeting"`
 }
 
 func handleSetGreeting(req *setGreetingRequest) (any, error) {
-	return nil, setUserField("greeting", req.Greeting)
+	return nil, settings.SetUser("greeting", req.Greeting)
 }
 
 type setPunctuationRequest struct {
@@ -112,7 +97,7 @@ func handleSetPunctuation(req *setPunctuationRequest) (any, error) {
 	default:
 		return nil, fmt.Errorf("unknown punctuation %q", req.Punctuation)
 	}
-	return nil, setUserField("punctuation", req.Punctuation)
+	return nil, settings.SetUser("punctuation", req.Punctuation)
 }
 
 type setShoutRequest struct {
@@ -120,7 +105,7 @@ type setShoutRequest struct {
 }
 
 func handleSetShout(req *setShoutRequest) (any, error) {
-	return nil, setUserField("shout", req.Shout)
+	return nil, settings.SetUser("shout", req.Shout)
 }
 
 // registerSettingsHandlers wires the three controls above.
@@ -141,6 +126,15 @@ func registerSettingsHandlers(p *branchkit.Plugin) {
 // spelled by hand. Datastar posts it; the tab re-renders from the server.
 // No client-side state, no fetch, no JSON assembled in the browser.
 func renderSettingsTab() string {
+	// Read through, not just the cache: a render must see state at least as
+	// fresh as whatever triggered it (it may be the re-render fired right
+	// after one of this tab's own writes, or an edit made in the Collections
+	// tab). On failure config() still serves the last snapshot.
+	if settings != nil {
+		if _, err := settings.Load(); err != nil {
+			branchkit.Logf("helloworld", "settings read-through failed: %v", err)
+		}
+	}
 	c := config()
 
 	rows := textRow(
