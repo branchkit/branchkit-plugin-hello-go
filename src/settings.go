@@ -156,7 +156,9 @@ func renderSettingsTab() string {
 		branchkit.MethodPost("set_shout", fmt.Sprintf("{shout: %t}", !c.Shout)),
 	)
 
-	return `<div id="settings-table-container" style="padding: 16px; font-family: system-ui;">` +
+	// Plain fragment — the platform's settings frame owns the morph
+	// container (#settings-table-container); a plugin must not render it.
+	return `<div style="padding: 16px; font-family: system-ui;">` +
 		`<h2 style="margin: 0 0 4px 0; font-size: 16px;">Greeting</h2>` +
 		`<p style="color: #888; margin: 0 0 16px 0; font-size: 13px;">Shapes what the ` +
 		`<em>hello branchkit</em> command types at your cursor.</p>` +
