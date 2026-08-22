@@ -23,6 +23,7 @@ import (
 	"html"
 
 	"github.com/branchkit/plugin-sdk-go"
+	"github.com/branchkit/plugin-sdk-go/ui"
 )
 
 // The collection declared in plugin.json under `provides.collections`, with
@@ -121,10 +122,12 @@ func registerSettingsHandlers(p *branchkit.Plugin) {
 // template language is a choice each plugin makes for itself — several plugins
 // in this repo use templ instead, and the platform does not care.
 //
-// The controls post to this plugin's own methods with `branchkit.MethodPost`,
-// which builds the `/v1/plugins/<id>/methods/<name>` URL so the id is never
-// spelled by hand. Datastar posts it; the tab re-renders from the server.
-// No client-side state, no fetch, no JSON assembled in the browser.
+// The controls come from the SDK's `ui` package (PostButton and friends),
+// which owns the interactive mechanics — method URLs, the `el` idiom,
+// signal hygiene — so a typo can't ship a silently dead button. Your
+// plugin still owns every pixel: the helpers take a style string and
+// return fragments you place in your own markup, and hand-written
+// Datastar remains a full escape hatch.
 func renderSettingsTab() string {
 	// Read through, not just the cache: a render must see state at least as
 	// fresh as whatever triggered it (it may be the re-render fired right
@@ -140,10 +143,6 @@ func renderSettingsTab() string {
 	rows := textRow(
 		"Greeting", "The word typed before the name.",
 		c.Greeting,
-		// el is the element the handler runs on; el.previousElementSibling
-		// is the input, read at click time. (el, not $el — the $ prefix is
-		// for signals, and $el silently reads an undefined signal.)
-		branchkit.MethodPost("set_greeting", "{greeting: el.previousElementSibling.value}"),
 	) + enumRow(
 		"Ending", "How the greeting finishes.",
 		c.Punctuation,
@@ -155,7 +154,7 @@ func renderSettingsTab() string {
 	) + boolRow(
 		"Shout it", "Type the greeting in capitals.",
 		c.Shout,
-		branchkit.MethodPost("set_shout", fmt.Sprintf("{shout: %t}", !c.Shout)),
+		fmt.Sprintf("{shout: %t}", !c.Shout),
 	)
 
 	// Plain fragment — the platform's settings frame owns the morph
@@ -181,20 +180,24 @@ func row(label, description, control string) string {
 		`</div><div>` + control + `</div></div>`
 }
 
-func textRow(label, description, value, onSave string) string {
+// textRow pairs an input with a Save that posts the input's value.
+// ui.InputValue is the SDK's spelling of "the input before this button" —
+// the element is `el`, never `$el` ($ reads a signal; a hand-written $el
+// is a dead button with no error).
+func textRow(label, description, value string) string {
 	return row(label, description,
 		`<input type="text" value="`+html.EscapeString(value)+`" `+
 			`style="background: #1c1c1e; border: 1px solid #3a3a3c; color: inherit; border-radius: 4px; padding: 4px 8px; font-size: 13px;">`+
-			`<button style="margin-left: 8px; font-size: 12px;" data-on:click="`+html.EscapeString(onSave)+`">Save</button>`)
+			ui.PostButton("Save", "set_greeting", "{greeting: "+ui.InputValue+"}", "margin-left: 8px; font-size: 12px;"))
 }
 
-func boolRow(label, description string, on bool, onToggle string) string {
+func boolRow(label, description string, on bool, payloadJS string) string {
 	state := "Off"
 	if on {
 		state = "On"
 	}
 	return row(label, description,
-		`<button style="min-width: 56px; font-size: 12px;" data-on:click="`+html.EscapeString(onToggle)+`">`+state+`</button>`)
+		ui.PostButton(state, "set_shout", payloadJS, "min-width: 56px; font-size: 12px;"))
 }
 
 // enumRow shows one button per value. Note the option LABELS — "Hello, Drew!"
@@ -208,9 +211,7 @@ func enumRow(label, description, current string, options [][2]string) string {
 		if value == current {
 			style += " font-weight: 700; border-color: #4a9eff;"
 		}
-		buttons += `<button style="` + style + `" data-on:click="` +
-			html.EscapeString(branchkit.MethodPost("set_punctuation", `{punctuation: '`+value+`'}`)) +
-			`">` + html.EscapeString(text) + `</button>`
+		buttons += ui.PostButton(text, "set_punctuation", `{punctuation: '`+value+`'}`, style)
 	}
 	return row(label, description, buttons)
 }
