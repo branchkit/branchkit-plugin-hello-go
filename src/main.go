@@ -3,7 +3,7 @@ package main
 import (
 	"strings"
 
-	shared "github.com/branchkit/plugin-sdk-go"
+	"github.com/branchkit/plugin-sdk-go"
 )
 
 type RenderSettingsRequest struct {
@@ -12,14 +12,14 @@ type RenderSettingsRequest struct {
 
 // plugin is the process-wide handle, so the settings relay in settings.go can
 // reach it without threading it through every call.
-var plugin *shared.Plugin
+var plugin *branchkit.Plugin
 
 // shoutText is here rather than in settings.go to keep the template file free
 // of anything specific to this example.
 func shoutText(s string) string { return strings.ToUpper(s) }
 
 func main() {
-	plugin = shared.NewPlugin()
+	plugin = branchkit.NewPlugin()
 
 	// Settings: declared in plugin.json, stored by the platform, read here
 	// through a typed mirror. See settings.go — that file is the template to
@@ -31,7 +31,7 @@ func main() {
 	// actions_gen.go by `just gen-plugins`, so the action string is never
 	// spelled here and the params arrive typed. Prefer this over the untyped
 	// plugin.HandleAction — this plugin is the example others copy.
-	HandleGreet(plugin, func(p GreetParams, _ *shared.OnActionRequest) (any, error) {
+	HandleGreet(plugin, func(p GreetParams, _ *branchkit.OnActionRequest) (any, error) {
 		name := "BranchKit"
 		if p.Name != nil {
 			name = *p.Name
@@ -45,11 +45,11 @@ func main() {
 		return nil, plugin.InputTypeText(greetingFor(name))
 	})
 
-	shared.HandleTyped(plugin, "render_settings", func(req *RenderSettingsRequest) (any, error) {
+	branchkit.HandleTyped(plugin, "render_settings", func(req *RenderSettingsRequest) (any, error) {
 		if req.TabKey == "settings" {
-			return shared.RenderSettingsResponse{HTML: renderSettingsTab()}, nil
+			return branchkit.RenderSettingsResponse{HTML: renderSettingsTab()}, nil
 		}
-		return shared.RenderSettingsResponse{
+		return branchkit.RenderSettingsResponse{
 			HTML: `<div style="padding: 16px; font-family: system-ui;">
 	<h2 style="margin: 0 0 12px 0;">Hello World Plugin</h2>
 	<p style="color: #888; margin: 0 0 16px 0;">A minimal BranchKit plugin that types a greeting at the cursor.</p>
@@ -78,7 +78,7 @@ func main() {
 	})
 
 	plugin.OnReady(func() {
-		shared.Log("helloworld", "all plugins ready")
+		branchkit.Log("helloworld", "all plugins ready")
 	})
 
 	plugin.Run()

@@ -25,7 +25,7 @@ func TestRenderSettingsTabDrawsEveryControl(t *testing.T) {
 	}
 
 	// Every control must post to a method this plugin actually registers.
-	// `shared.MethodPost` builds the URL, so what this catches is a method
+	// `branchkit.MethodPost` builds the URL, so what this catches is a method
 	// name that was renamed on one side only.
 	for _, method := range []string{"set_greeting", "set_punctuation", "set_shout"} {
 		if !strings.Contains(html, "/methods/"+method) {

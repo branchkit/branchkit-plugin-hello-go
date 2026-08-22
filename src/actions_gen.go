@@ -3,7 +3,7 @@
 
 package main
 
-import shared "github.com/branchkit/plugin-sdk-go"
+import "github.com/branchkit/plugin-sdk-go"
 
 // GreetParams is the params shape for action "helloworld.greet (Greet)".
 type GreetParams struct {
@@ -11,6 +11,6 @@ type GreetParams struct {
 }
 
 // HandleGreet registers a typed handler for action "helloworld.greet (Greet)".
-func HandleGreet(p *shared.Plugin, fn func(GreetParams, *shared.OnActionRequest) (any, error)) {
-	shared.HandleActionTyped(p, "helloworld.greet", fn)
+func HandleGreet(p *branchkit.Plugin, fn func(GreetParams, *branchkit.OnActionRequest) (any, error)) {
+	branchkit.HandleActionTyped(p, "helloworld.greet", fn)
 }

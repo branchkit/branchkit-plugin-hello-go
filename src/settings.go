@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"html"
 
-	shared "github.com/branchkit/plugin-sdk-go"
+	"github.com/branchkit/plugin-sdk-go"
 )
 
 // The collection declared in plugin.json under `provides.collections`, with
@@ -41,7 +41,7 @@ type Config struct {
 	Shout       bool   `json:"shout"`
 }
 
-var settings *shared.SettingsMirror[Config]
+var settings *branchkit.SettingsMirror[Config]
 
 // initSettings wires the typed mirror. Must run before plugin.Run() so the
 // first fetch lands.
@@ -50,8 +50,8 @@ var settings *shared.SettingsMirror[Config]
 // plugin.json. Without it the mirror never hears about changes made anywhere
 // else (the Collections tab, another window) and your plugin reads a stale
 // value until it restarts. That is a real bug that shipped in this repo once.
-func initSettings(p *shared.Plugin) {
-	settings = shared.Settings[Config](p, settingsCollection)
+func initSettings(p *branchkit.Plugin) {
+	settings = branchkit.Settings[Config](p, settingsCollection)
 }
 
 // config returns the composed settings, with a fallback for the window before
@@ -118,10 +118,10 @@ func handleSetShout(req *setShoutRequest) (any, error) {
 }
 
 // registerSettingsHandlers wires the three controls above.
-func registerSettingsHandlers(p *shared.Plugin) {
-	shared.HandleTyped(p, "set_greeting", handleSetGreeting)
-	shared.HandleTyped(p, "set_punctuation", handleSetPunctuation)
-	shared.HandleTyped(p, "set_shout", handleSetShout)
+func registerSettingsHandlers(p *branchkit.Plugin) {
+	branchkit.HandleTyped(p, "set_greeting", handleSetGreeting)
+	branchkit.HandleTyped(p, "set_punctuation", handleSetPunctuation)
+	branchkit.HandleTyped(p, "set_shout", handleSetShout)
 }
 
 // --- Drawing: your markup, start to finish ----------------------------------
@@ -130,7 +130,7 @@ func registerSettingsHandlers(p *shared.Plugin) {
 // template language is a choice each plugin makes for itself — several plugins
 // in this repo use templ instead, and the platform does not care.
 //
-// The controls post to this plugin's own methods with `shared.MethodPost`,
+// The controls post to this plugin's own methods with `branchkit.MethodPost`,
 // which builds the `/v1/plugins/<id>/methods/<name>` URL so the id is never
 // spelled by hand. Datastar posts it; the tab re-renders from the server.
 // No client-side state, no fetch, no JSON assembled in the browser.
@@ -141,7 +141,7 @@ func renderSettingsTab() string {
 		"Greeting", "The word typed before the name.",
 		c.Greeting,
 		// $el.value is the input's current text at click time.
-		shared.MethodPost("set_greeting", "{greeting: $el.previousElementSibling.value}"),
+		branchkit.MethodPost("set_greeting", "{greeting: $el.previousElementSibling.value}"),
 	) + enumRow(
 		"Ending", "How the greeting finishes.",
 		c.Punctuation,
@@ -153,7 +153,7 @@ func renderSettingsTab() string {
 	) + boolRow(
 		"Shout it", "Type the greeting in capitals.",
 		c.Shout,
-		shared.MethodPost("set_shout", fmt.Sprintf("{shout: %t}", !c.Shout)),
+		branchkit.MethodPost("set_shout", fmt.Sprintf("{shout: %t}", !c.Shout)),
 	)
 
 	return `<div id="settings-table-container" style="padding: 16px; font-family: system-ui;">` +
@@ -205,7 +205,7 @@ func enumRow(label, description, current string, options [][2]string) string {
 			style += " font-weight: 700; border-color: #4a9eff;"
 		}
 		buttons += `<button style="` + style + `" data-on:click="` +
-			html.EscapeString(shared.MethodPost("set_punctuation", `{punctuation: '`+value+`'}`)) +
+			html.EscapeString(branchkit.MethodPost("set_punctuation", `{punctuation: '`+value+`'}`)) +
 			`">` + html.EscapeString(text) + `</button>`
 	}
 	return row(label, description, buttons)
