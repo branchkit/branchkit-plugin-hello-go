@@ -82,8 +82,14 @@ func setUserField(key string, value any) error {
 	}
 	id := settingsCollection
 	tenant := "_user"
-	_, err = plugin.OverridesApply("patch", settingsCollection, nil, raw, &id, nil, &tenant)
-	return err
+	if _, err = plugin.OverridesApply("patch", settingsCollection, nil, raw, &id, nil, &tenant); err != nil {
+		return err
+	}
+	// The actuator re-renders the tab the moment this method returns; the
+	// mirror normally catches up asynchronously via collection.updated,
+	// which loses that race and re-draws the stale value. Refresh
+	// synchronously so the re-render sees the write.
+	return settings.Refresh()
 }
 
 type setGreetingRequest struct {
