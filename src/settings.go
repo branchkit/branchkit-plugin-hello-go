@@ -140,8 +140,10 @@ func renderSettingsTab() string {
 	rows := textRow(
 		"Greeting", "The word typed before the name.",
 		c.Greeting,
-		// $el.value is the input's current text at click time.
-		branchkit.MethodPost("set_greeting", "{greeting: $el.previousElementSibling.value}"),
+		// el is the element the handler runs on; el.previousElementSibling
+		// is the input, read at click time. (el, not $el — the $ prefix is
+		// for signals, and $el silently reads an undefined signal.)
+		branchkit.MethodPost("set_greeting", "{greeting: el.previousElementSibling.value}"),
 	) + enumRow(
 		"Ending", "How the greeting finishes.",
 		c.Punctuation,
