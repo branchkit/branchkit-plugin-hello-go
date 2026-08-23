@@ -8,6 +8,12 @@
   "privileges": [
     "input"
   ],
+  "dev": {
+    "build": [
+      ["go", "build", "-ldflags=-s -w", "-o", "../hello-plugin", "."]
+    ],
+    "build_dir": "src"
+  },
   "run": "./hello-plugin",
   "action_prefix": "helloworld",
   "action_types": {
