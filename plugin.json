@@ -41,7 +41,7 @@
   "collection_data": {
     "voice_commands": "commands.json",
     "keybinds": {
-      "alt+shift+h": "helloworld greet"
+      "alt+shift+h": { "action": "helloworld.greet" }
     }
   },
   "implements": {
