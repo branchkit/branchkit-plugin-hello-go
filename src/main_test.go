@@ -1,0 +1,41 @@
+package main
+
+import (
+	"testing"
+
+	"github.com/branchkit/plugin-sdk-go/harness"
+)
+
+// The tests exercise what this plugin OWNS: its exact-phrase command and
+// the params it carries. The "hello <apps>" capture is deliberately not
+// unit-tested — it matches against the apps collection, which the system
+// plugin provides in a running BranchKit; verify it live with
+// `branchkit-cli dev say "hello safari" --simulate`.
+
+func TestGreetMatches(t *testing.T) {
+	h := harness.Start(t, "..")
+	result := h.MustSimulateCommand("hello branchkit")
+	if result.ActionType() != "helloworld.greet" {
+		t.Fatalf("expected action type %q, got %q", "helloworld.greet", result.ActionType())
+	}
+	var params struct {
+		Name string `json:"name"`
+	}
+	if err := result.ActionParams(&params); err != nil {
+		t.Fatalf("ActionParams: %v", err)
+	}
+	if params.Name != "BranchKit" {
+		t.Fatalf("expected name %q, got %q", "BranchKit", params.Name)
+	}
+}
+
+func TestUnknownPhraseDoesNotMatch(t *testing.T) {
+	h := harness.Start(t, "..")
+	result, err := h.TrySimulateCommand("goodbye branchkit")
+	if err != nil {
+		t.Fatalf("TrySimulateCommand: %v", err)
+	}
+	if result.Matched {
+		t.Fatal("expected no match for an unknown phrase")
+	}
+}

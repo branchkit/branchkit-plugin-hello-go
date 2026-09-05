@@ -1,21 +1,19 @@
 {
   "$schema": "https://branchkit.dev/schemas/manifest.json",
   "id": "helloworld",
-  "name": "Hello World",
-  "version": "1.0.0",
+  "name": "Helloworld",
+  "version": "0.1.0",
   "min_api_version": "0.1.0",
-  "description": "A minimal BranchKit plugin that types a greeting at the cursor.",
+  "description": "A BranchKit plugin",
   "author": "Your Name",
-  "privileges": [
-    "input"
-  ],
+  "privileges": ["input"],
   "dev": {
     "build": [
-      ["go", "build", "-ldflags=-s -w", "-o", "../hello-plugin", "."]
+      ["go", "build", "-o", "../helloworld-plugin", "."]
     ],
     "build_dir": "src"
   },
-  "run": "./hello-plugin",
+  "run": "./helloworld-plugin",
   "action_prefix": "helloworld",
   "action_types": {
     "greet": {
@@ -30,70 +28,19 @@
     }
   },
   "consumes": {
-    "collections": [
-      "apps"
-    ],
-    "events": [
-      {
-        "pattern": "_platform.collection.updated"
-      }
-    ]
+    "collections": ["apps"]
   },
   "collection_data": {
     "voice_commands": "commands.json",
     "keybinds": {
-      "alt+shift+h": { "action": "helloworld.greet" }
+      "alt+shift+h": { "action": "helloworld.greet", "name": "BranchKit" }
     }
   },
   "implements": {
     "on_action": true,
     "render_settings": true,
     "settings_tabs": [
-      {
-        "label": "Getting Started",
-        "key": "getting_started"
-      },
-      {
-        "label": "Settings",
-        "key": "settings"
-      }
+      { "label": "Getting Started", "key": "getting_started" }
     ]
-  },
-  "provides": {
-    "collections": {
-      "plugin.helloworld.config": {
-        "preset": "settings",
-        "label": "Hello World",
-        "description": "Settings for the greeting this plugin types. Defaults live here; only your changes are stored.",
-        "fields": [
-          {
-            "key": "greeting",
-            "label": "Greeting",
-            "description": "The word typed before the name.",
-            "field_type": "string",
-            "default": "Hello"
-          },
-          {
-            "key": "punctuation",
-            "label": "Ending",
-            "description": "How the greeting finishes.",
-            "field_type": "enum",
-            "enum_values": [
-              "period",
-              "exclamation",
-              "none"
-            ],
-            "default": "exclamation"
-          },
-          {
-            "key": "shout",
-            "label": "Shout it",
-            "description": "Type the greeting in capitals.",
-            "field_type": "boolean",
-            "default": false
-          }
-        ]
-      }
-    }
   }
 }

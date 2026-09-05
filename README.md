@@ -1,60 +1,24 @@
-# Hello BranchKit (Go)
+# Helloworld
 
-A minimal [BranchKit](https://branchkit.dev) plugin that types a greeting at the cursor.
+A BranchKit plugin
 
-This is a **starter template** — clone it, customize it, and use it as the foundation for your own plugin.
-
-## What it does
-
-- **Voice**: Say "hello branchkit" → types "Hello, BranchKit!" at your cursor
-- **Voice**: Say "hello Alice" → types "Hello, Alice!"
-- **Keybind**: Alt+Shift+H → types "Hello, BranchKit!"
-
-## Setup
-
-### 1. Clone
+## Build
 
 ```bash
-git clone https://github.com/branchkit/branchkit-plugin-helloworld-go.git my-plugin
-cd my-plugin
+branchkit-cli dev build
 ```
 
-### 2. Generate typed params (optional)
-
-If you add or change fields in `action_types`, re-run the codegen tool:
+## Test
 
 ```bash
-go install github.com/branchkit/branchkit-gen@latest
-branchkit-gen --plugin .
+branchkit-cli dev test .
 ```
 
-This updates `src/actions_gen.go` with typed param structs derived from your `plugin.json`.
-
-### 3. Build
+## Install
 
 ```bash
-cd src && go build -o ../hello-plugin .
+branchkit-cli plugin install . --build
 ```
-
-### 4. Install
-
-Symlink your plugin directory into BranchKit's plugin directory:
-
-```bash
-ln -s $(pwd) ~/Library/Application\ Support/BranchKit/plugins/helloworld
-```
-
-Restart BranchKit. Your plugin loads automatically.
-
-### 5. Development loop
-
-Because you installed via symlink, your working directory is the live plugin. Edit, rebuild, restart:
-
-```bash
-cd src && go build -o ../hello-plugin . && killall BranchKit; open /Applications/BranchKit.app
-```
-
-No copy step — BranchKit reads from the symlinked path directly.
 
 ## Files
 
@@ -63,23 +27,30 @@ No copy step — BranchKit reads from the symlinked path directly.
 | `plugin.json` | Manifest — declares actions, keybinds, voice commands |
 | `commands.json` | Voice command patterns that trigger actions |
 | `src/main.go` | Handler logic — your plugin's behavior |
-| `src/actions_gen.go` | Generated typed params (from `branchkit-gen`) |
 
-## Customizing
+## Platform documentation
 
-1. Change `"id"` and `"action_prefix"` in `plugin.json` to your plugin's name
-2. Add actions to `action_types` with the fields they accept
-3. Run `branchkit-gen --plugin .` to regenerate `src/actions_gen.go`
-4. Write handler logic in `src/main.go`
-5. Add voice commands to `commands.json` and keybinds to `plugin.json`
+The full platform docs ship with the app as markdown. Grep them rather than
+guessing — they are the reference for the manifest, the RPC surface, matching,
+collections, and the event bus.
+
+```bash
+branchkit-cli docs sync          # once, after installing or updating BranchKit
+grep -rl "requires_tags" "$(branchkit-cli docs path)"
+```
+
+## When it does not work
+
+The running app answers questions no document can, because the answer depends
+on what else is installed and what state the machine is in.
+
+```bash
+branchkit-cli dev smoke                    # side-effect-free health sweep
+branchkit-cli dev plog helloworld --since 60s   # what this plugin logged
+branchkit-cli dev chain                    # recent command chains, then: dev chain <tr_id>
+```
 
 ## Learn more
 
-- [Your First Plugin](https://branchkit.dev/guide/getting-started/your-first-plugin) — step-by-step tutorial
-- [Actions](https://branchkit.dev/guide/concepts/actions) — action routing, typed params, validation
-- [Plugin SDK (Go)](https://github.com/branchkit/plugin-sdk-go) — full SDK reference
-- [branchkit-gen](https://github.com/branchkit/branchkit-gen) — codegen tool
-
-## License
-
-MIT
+- [Your First Plugin](https://branchkit.dev/guide/getting-started/your-first-plugin)
+- [Plugin SDK (Go)](https://github.com/branchkit/plugin-sdk-go)
